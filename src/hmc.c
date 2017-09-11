@@ -2,7 +2,6 @@
 // Created by pierfied on 9/10/17.
 //
 
-#include <stdio.h>
 #include <stdlib.h>
 #include "hmc.h"
 #include "normal.h"
@@ -22,10 +21,21 @@ SampleChain hmc(HMCArgs hmc_args) {
 
 }
 
-double *initialize_momenta(int num_params) {
+/*
+ * init_p
+ * Initializes the momenta from a standard normal distribution.
+ *
+ * Params:
+ * num_params: The number of parameters to generate momenta for.
+ *
+ * Returns:
+ * An array of momenta values with length num_params.
+ */
+double *init_p(int num_params) {
     double *p = malloc(sizeof(double) * num_params);
-
     for(int i = 0; i < num_params; i++){
-        p[i] = 1;
+        p[i] = normal();
     }
+
+    return p;
 }
