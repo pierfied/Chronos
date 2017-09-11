@@ -35,6 +35,7 @@ typedef struct {
  */
 typedef struct {
     Hamiltonian (*log_likelihood)(double *, void *);
+
     void *likelihood_args;
     int num_samples;
     int num_params;
@@ -60,8 +61,11 @@ typedef struct {
 } SampleChain;
 
 SampleChain hmc(HMCArgs hmc_args);
+
 double *init_p(int num_params);
+
 Hamiltonian hamiltonian(double *x, double *p, HMCArgs hmc_args);
+
 void leapfrog_update(double *x, double *p, double *grad, int num_params,
                      double epsilon);
 

@@ -3,10 +3,9 @@
 //
 
 #include <stdlib.h>
-#include <stdio.h>
+#include <math.h>
 #include "hmc.h"
 #include "normal.h"
-#include <math.h>
 
 /*
  * hmc
@@ -32,34 +31,34 @@ SampleChain hmc(HMCArgs hmc_args) {
     // Initialize the positions and momenta.
     double *x = malloc(sizeof(double) * num_params);
     double *x_prime = malloc(sizeof(double) * num_params);
-    for(int i = 0; i < num_params; i++){
+    for (int i = 0; i < num_params; i++) {
         x[i] = hmc_args.x0[i];
     }
 
     // Generate the samples.
-    for(int i = 0; i < num_samps; i++){
+    for (int i = 0; i < num_samps; i++) {
         // Copy initial positions and generate new momenta.
-        for (int j = 0 ; j < num_params; j++){
+        for (int j = 0; j < num_params; j++) {
             x_prime[j] = x[j];
         }
         double *p = init_p(num_params);
 
         // Compute the initial Hamiltonian and gradients.
-        Hamiltonian H = hamiltonian(x,p,hmc_args);
+        Hamiltonian H = hamiltonian(x, p, hmc_args);
         Hamiltonian H_prime;
         double *grad = H_prime.grad;
 
         // Perform the leapfrog propagation.
-        for(int j = 0; j < num_steps; j++){
-            leapfrog_update(x_prime,p,grad,num_params,epsilon);
+        for (int j = 0; j < num_steps; j++) {
+            leapfrog_update(x_prime, p, grad, num_params, epsilon);
 
-            H_prime = hamiltonian(x_prime,p,hmc_args);
+            H_prime = hamiltonian(x_prime, p, hmc_args);
             grad = H_prime.grad;
         }
 
         // Perform Metropolis-Hastings update.
-        double accept_prob = fmin(1,exp(H.H - H_prime.H));
-        if(drand48() <= accept_prob){
+        double accept_prob = fmin(1, exp(H.H - H_prime.H));
+        if (drand48() <= accept_prob) {
             double *tmp = x;
             x = x_prime;
             x_prime = tmp;
@@ -67,7 +66,7 @@ SampleChain hmc(HMCArgs hmc_args) {
             num_accept++;
         }
         samples[i] = malloc(sizeof(double) * num_params);
-        for(int j = 0; j < num_params; j++){
+        for (int j = 0; j < num_params; j++) {
             samples[i][j] = x[j];
         }
         log_likelihoods[i] = H.log_likelihood;
@@ -101,7 +100,7 @@ SampleChain hmc(HMCArgs hmc_args) {
  */
 double *init_p(int num_params) {
     double *p = malloc(sizeof(double) * num_params);
-    for(int i = 0; i < num_params; i++){
+    for (int i = 0; i < num_params; i++) {
         p[i] = normal();
     }
 
@@ -118,14 +117,14 @@ double *init_p(int num_params) {
  * hmc_args: HMCArgs struct with appropriate likelihood function.
  *
  * Returns:
- * Hamiltonian of the current
+ * Hamiltonian of the current state.
  */
-Hamiltonian hamiltonian(double *x, double *p, HMCArgs hmc_args){
-    Hamiltonian log_p = hmc_args.log_likelihood(x,hmc_args.likelihood_args);
+Hamiltonian hamiltonian(double *x, double *p, HMCArgs hmc_args) {
+    Hamiltonian log_p = hmc_args.log_likelihood(x, hmc_args.likelihood_args);
 
     // Compute the kinetic contribution the Hamiltonian.
     double K = 0;
-    for(int i = 0; i < hmc_args.num_params; i++){
+    for (int i = 0; i < hmc_args.num_params; i++) {
         K += p[i] * p[i];
     }
     log_p.K = K;
@@ -146,10 +145,10 @@ Hamiltonian hamiltonian(double *x, double *p, HMCArgs hmc_args){
  * epsilon: Step-size
  */
 void leapfrog_update(double *x, double *p, double *grad, int num_params,
-                     double epsilon){
-    double half_epsilon  = 0.5 * epsilon;
+                     double epsilon) {
+    double half_epsilon = 0.5 * epsilon;
 
-    for(int i = 0; i < num_params; i++){
+    for (int i = 0; i < num_params; i++) {
         // Perform a half step in momentum.
         p[i] -= half_epsilon * grad[i];
 
