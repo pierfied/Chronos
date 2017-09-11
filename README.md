@@ -1,2 +1,2 @@
 # Chronos
-A fast Hamiltonian Monte Carlo Sampler written in C.
+A fast Hamiltonian Monte Carlo sampler written in C.
