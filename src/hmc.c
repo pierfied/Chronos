@@ -52,6 +52,8 @@ SampleChain hmc(HMCArgs hmc_args) {
         for (int j = 0; j < num_steps; j++) {
             leapfrog_update(x_prime, p, grad, num_params, epsilon);
 
+            free(grad);
+
             H_prime = hamiltonian(x_prime, p, hmc_args);
             grad = H_prime.grad;
         }
