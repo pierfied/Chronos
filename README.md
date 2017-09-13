@@ -14,7 +14,7 @@ There are a couple of tests in the test directory. Parts of the test are written
 ### "normal" Test
 Tests the code's ability to produce a standard normal distribution via the Box-Muller transformation. Should produce a plot of the generated standard normal distribution.
 
-Run in the 'test/normal' directory:
+Run from the 'test/normal' directory:
 ```
 python normal.py
 ```
@@ -22,7 +22,7 @@ python normal.py
 ### "indep_normal" Test
 Tests the sampler by sampling from an independent multivariate normal distribution. Should produce a plot of the log-likelihoods and a corner plot of the parameters with the true values indicated.
 
-Run in the 'test/indep_normal' directory:
+Run from the 'test/indep_normal' directory:
 ```
 python indep_normal.py
 ```
