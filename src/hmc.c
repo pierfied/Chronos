@@ -133,7 +133,7 @@ Hamiltonian hamiltonian(double *x, double *p, HMCArgs hmc_args) {
         K += p[i] * p[i];
     }
     log_p.K = K;
-    log_p.H = K + log_p.log_likelihood;
+    log_p.H = K - log_p.log_likelihood;
 
     return log_p;
 }

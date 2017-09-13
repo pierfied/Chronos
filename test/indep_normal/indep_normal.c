@@ -20,7 +20,7 @@ Hamiltonian logp(double *x, void *arg_ptr){
     double *grad = malloc(sizeof(double) * num_params);
     for(int i = 0; i < num_params; i++){
         diff = (x[i] - mu[i]);
-        inv_sigma_sqr = 1/(sigma[i] * sigma[i]);
+        inv_sigma_sqr = 1.0/(sigma[i] * sigma[i]);
 
         log_likelihood += diff * diff * inv_sigma_sqr;
         grad[i] = diff * inv_sigma_sqr;
@@ -45,7 +45,7 @@ SampleResults test(int num_params, int num_samples, int num_steps,
     for(int i = 0; i < num_params; i++){
         mu[i] = normal();
         sigma[i] = 1 + 0.25 * normal();
-        x0[i] = normal();
+        x0[i] = mu[i] + sigma[i] * normal();
     }
     args.mu = mu;
     args.sigma = sigma;
