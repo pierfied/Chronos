@@ -155,12 +155,12 @@ void leapfrog_update(double *x, double *p, double *grad, int num_params,
 
     for (int i = 0; i < num_params; i++) {
         // Perform a half step in momentum.
-        p[i] -= half_epsilon * grad[i];
+        p[i] += half_epsilon * grad[i];
 
         // Perform a full step in position.
         x[i] += epsilon * p[i];
 
         // Perform another half step in momentum.
-        p[i] -= half_epsilon * grad[i];
+        p[i] += half_epsilon * grad[i];
     }
 }
