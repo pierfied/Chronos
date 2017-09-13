@@ -9,10 +9,20 @@ make
 ```
 
 ## Testing
-There are a couple of tests in the test directory. Parts of the test are written in C and must be compiled by running cmake in th test directory. After compiling the test library the python tests can be run.
+There are a couple of tests in the test directory. Parts of the test are written in C and must be compiled by running cmake in the test directory first. After compiling the test library the python tests can be run.
 
 ### "normal" Test
 Tests the code's ability to produce a standard normal distribution via the Box-Muller transformation. Should produce a plot of the generated standard normal distribution.
 
+Run in the 'test/normal' directory:
+```
+python normal.py
+```
+
 ### "indep_normal" Test
 Tests the sampler by sampling from an independent multivariate normal distribution. Should produce a plot of the log-likelihoods and a corner plot of the parameters with the true values indicated.
+
+Run in the 'test/indep_normal' directory:
+```
+python indep_normal.py
+```
