@@ -2,6 +2,7 @@
 // Created by pierfied on 9/10/17.
 //
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include "hmc.h"
@@ -46,7 +47,7 @@ SampleChain hmc(HMCArgs hmc_args) {
         // Compute the initial Hamiltonian and gradients.
         Hamiltonian H = hamiltonian(x, p, hmc_args);
         Hamiltonian H_prime;
-        double *grad = H_prime.grad;
+        double *grad = H.grad;
 
         // Perform the leapfrog propagation.
         for (int j = 0; j < num_steps; j++) {
@@ -57,6 +58,8 @@ SampleChain hmc(HMCArgs hmc_args) {
             H_prime = hamiltonian(x_prime, p, hmc_args);
             grad = H_prime.grad;
         }
+
+        free(grad);
 
         // Perform Metropolis-Hastings update.
         double accept_prob = fmin(1, exp(H.H - H_prime.H));
@@ -130,7 +133,7 @@ Hamiltonian hamiltonian(double *x, double *p, HMCArgs hmc_args) {
         K += p[i] * p[i];
     }
     log_p.K = K;
-    log_p.H = K + log_p.log_likelihood;
+    log_p.H = K - log_p.log_likelihood;
 
     return log_p;
 }
@@ -152,12 +155,12 @@ void leapfrog_update(double *x, double *p, double *grad, int num_params,
 
     for (int i = 0; i < num_params; i++) {
         // Perform a half step in momentum.
-        p[i] -= half_epsilon * grad[i];
+        p[i] += half_epsilon * grad[i];
 
         // Perform a full step in position.
         x[i] += epsilon * p[i];
 
         // Perform another half step in momentum.
-        p[i] -= half_epsilon * grad[i];
+        p[i] += half_epsilon * grad[i];
     }
 }
