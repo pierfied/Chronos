@@ -132,6 +132,7 @@ Hamiltonian hamiltonian(double *x, double *p, HMCArgs hmc_args) {
     for (int i = 0; i < hmc_args.num_params; i++) {
         K += p[i] * p[i];
     }
+    K *= 0.5;
     log_p.K = K;
     log_p.H = K - log_p.log_likelihood;
 

@@ -23,7 +23,7 @@ Hamiltonian logp(double *x, void *arg_ptr){
         inv_sigma_sqr = 1.0/(sigma[i] * sigma[i]);
 
         log_likelihood += diff * diff * inv_sigma_sqr;
-        grad[i] = diff * inv_sigma_sqr;
+        grad[i] = -diff * inv_sigma_sqr;
     }
     log_likelihood *= -0.5;
 
