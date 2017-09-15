@@ -2,7 +2,6 @@
 // Created by pierfied on 9/10/17.
 //
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include "hmc.h"
@@ -63,7 +62,7 @@ SampleChain hmc(HMCArgs hmc_args) {
 
         // Perform Metropolis-Hastings update.
         double accept_prob = fmin(1, exp(H.H - H_prime.H));
-        if (drand48() <= accept_prob) {
+        if (random()/(double) RAND_MAX <= accept_prob) {
             double *tmp = x;
             x = x_prime;
             x_prime = tmp;

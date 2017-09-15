@@ -17,8 +17,8 @@
 double normal() {
     double x1, x2, w;
     do {
-        x1 = 2.0 * rand() / RAND_MAX - 1.0;
-        x2 = 2.0 * rand() / RAND_MAX - 1.0;
+        x1 = 2.0 * random() / RAND_MAX - 1.0;
+        x2 = 2.0 * random() / RAND_MAX - 1.0;
 
         w = x1 * x1 + x2 * x2;
     } while (w >= 1.0 || w == 0);
