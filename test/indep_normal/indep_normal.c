@@ -45,8 +45,6 @@ SampleResults test(int num_params, int num_samples, int num_steps,
         mu[i] = normal();
         sigma[i] = 1 + 0.25 * normal();
         x0[i] = normal();
-        mu[i] = 0;
-
     }
     args.mu = mu;
     args.sigma = sigma;
