@@ -25,7 +25,7 @@ Hamiltonian RP_logp(double *params, void *arg_ptr){
     for(int i = 0; i < n_data; i++){
         y_model = m * x[i] + b;
 
-        log_likelihood += (y[i] - y_model)/(err[i] * err[i]);
+        log_likelihood += (y[i] - y_model)*(y[i] - y_model)/(err[i] * err[i]);
 
         grad[0] += (y[i] - y_model)*x[i]/(err[i] * err[i]);
         grad[1] += (y[i] - y_model)/(err[i] * err[i]);
@@ -80,6 +80,9 @@ RPSampleResults RP_test(int n_data, int num_samples, int num_steps,
     results.chain = chain;
     results.m_true = m_true;
     results.b_true = b_true;
+    results.y = y_data;
+    results.x = x;
+    results.err = err;
 
     return results;
 }

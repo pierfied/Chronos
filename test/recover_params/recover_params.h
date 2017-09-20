@@ -14,6 +14,9 @@ typedef struct {
 typedef struct {
     double m_true;
     double b_true;
+    double *y;
+    double *x;
+    double *err;
     SampleChain chain;
 } RPSampleResults;
 
