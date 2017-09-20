@@ -49,16 +49,31 @@ SampleChain hmc(HMCArgs hmc_args) {
         double *grad = H.grad;
 
         // Perform the leapfrog propagation.
+        double half_epsilon = 0.5*epsilon;
         for (int j = 0; j < num_steps; j++) {
-            leapfrog_update(x_prime, p, grad, num_params, epsilon);
+            for(int k = 0; k < num_params; k++){
+                // Half-step in momenta.
+                p[k] += half_epsilon * grad[k];
 
+                // Full-step in position.
+                x_prime[k] += epsilon * p[k];
+            }
             free(grad);
 
-            H_prime = hamiltonian(x_prime, p, hmc_args);
+            // Update the gradients.
+            H_prime = log_likelihood(x_prime, hmc_args);
             grad = H_prime.grad;
+
+            for(int k = 0; k < num_params; k++){
+                // Last half-step in momenta.
+                p[k] += half_epsilon * grad[k];
+            }
         }
 
         free(grad);
+
+        // Update the proposed Hamiltonian with the current momenta.
+        update_hamiltonian_momenta(p, &H_prime, hmc_args);
 
         // Perform Metropolis-Hastings update.
         double accept_prob = fmin(1, exp(H.H - H_prime.H));
@@ -124,18 +139,48 @@ double *init_p(int num_params) {
  * Hamiltonian of the current state.
  */
 Hamiltonian hamiltonian(double *x, double *p, HMCArgs hmc_args) {
-    Hamiltonian log_p = hmc_args.log_likelihood(x, hmc_args.likelihood_args);
+    Hamiltonian log_p = log_likelihood(x, hmc_args);
+    update_hamiltonian_momenta(p, &log_p, hmc_args);
 
-    // Compute the kinetic contribution the Hamiltonian.
+    return log_p;
+}
+
+/*
+ * log_likelihood
+ * Computes the log-likelihood of the current state.
+ *
+ * Params:
+ * x: Current positions.
+ * hmc_args: HMCArgs struct with appropriate likelihood function.
+ *
+ * Returns:
+ * Hamiltonian struct with only likelihood and gradient values.
+ */
+Hamiltonian log_likelihood(double *x, HMCArgs hmc_args){
+    Hamiltonian log_p = hmc_args.log_likelihood(x, hmc_args.likelihood_args);
+    return log_p;
+}
+
+/*
+ * update_hamiltonian_momenta
+ * Updates the hamiltonian passed in to include the kinetic
+ * contribution from the provided momenta.
+ *
+ * Params:
+ * p: Pointer to momenta.
+ * H: Pointer to the Hamiltonian struct to be updated.
+ * hmc_args: HMCArgs struct with appropriate likelihood function.
+ */
+void update_hamiltonian_momenta(double *p, Hamiltonian *H,
+                                       HMCArgs hmc_args){
+    // Compute the kinetic contribution to the Hamiltonian.
     double K = 0;
     for (int i = 0; i < hmc_args.num_params; i++) {
         K += p[i] * p[i];
     }
     K *= 0.5;
-    log_p.K = K;
-    log_p.H = K - log_p.log_likelihood;
-
-    return log_p;
+    H->K = K;
+    H->H = K - H->log_likelihood;
 }
 
 /*

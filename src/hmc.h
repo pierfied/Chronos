@@ -66,6 +66,11 @@ double *init_p(int num_params);
 
 Hamiltonian hamiltonian(double *x, double *p, HMCArgs hmc_args);
 
+Hamiltonian log_likelihood(double *x, HMCArgs hmc_args);
+
+void update_hamiltonian_momenta(double *p, Hamiltonian *H,
+                                HMCArgs hmc_args);
+
 void leapfrog_update(double *x, double *p, double *grad, int num_params,
                      double epsilon);
 
