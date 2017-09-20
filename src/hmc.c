@@ -52,12 +52,26 @@ SampleChain hmc(HMCArgs hmc_args) {
         Hamiltonian H_prime;
         double *grad = H.grad;
 
-        // Perform the leapfrog propagation.
+        // Perform the first step in leapfrog.
         double half_epsilon = 0.5*epsilon;
-        for (int j = 0; j < num_steps; j++) {
+        for(int j = 0; j < num_params; j++){
+            // Half-step in momenta.
+            p[j] += half_epsilon * grad[j];
+
+            // Full-step in position.
+            x_prime[j] += epsilon * p[j];
+        }
+        free(grad);
+
+        // Update the gradients.
+        H_prime = log_likelihood(x_prime, hmc_args);
+        grad = H_prime.grad;
+
+        // Perform the rest of the leapfrog propagation.
+        for (int j = 1; j < num_steps; j++) {
             for(int k = 0; k < num_params; k++){
-                // Half-step in momenta.
-                p[k] += half_epsilon * grad[k];
+                // Full-step in momenta.
+                p[k] += epsilon * grad[k];
 
                 // Full-step in position.
                 x_prime[k] += epsilon * p[k];
@@ -67,13 +81,12 @@ SampleChain hmc(HMCArgs hmc_args) {
             // Update the gradients.
             H_prime = log_likelihood(x_prime, hmc_args);
             grad = H_prime.grad;
-
-            for(int k = 0; k < num_params; k++){
-                // Last half-step in momenta.
-                p[k] += half_epsilon * grad[k];
-            }
         }
 
+        // Perform the last half-step in momenta.
+        for(int j = 0; j < num_params; j++){
+            p[j] += half_epsilon * grad[j];
+        }
         free(grad);
 
         // Update the proposed Hamiltonian with the current momenta.

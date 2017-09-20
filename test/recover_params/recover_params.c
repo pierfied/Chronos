@@ -3,6 +3,7 @@
 //
 
 #include <stdlib.h>
+#include <time.h>
 #include "recover_params.h"
 #include "include/hmc.h"
 #include "include/normal.h"
@@ -41,6 +42,8 @@ Hamiltonian RP_logp(double *params, void *arg_ptr){
 
 RPSampleResults RP_test(int n_data, int num_samples, int num_steps,
                    double epsilon){
+    srandom(time(NULL));
+
     RPLikelihoodArgs args;
     args.n_data = n_data;
 

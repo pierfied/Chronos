@@ -26,7 +26,7 @@ test.restype = RPSampleResults
 
 num_data = 10
 num_samps = int(1e5)
-results = test(num_data,num_samps,1,5.0e-2)
+results = test(num_data,num_samps,1,1e-2)
 print('Acceptance Rate: ',str(results.chain.accept_rate))
 
 # x_true = np.array([results.x_true[i] for i in range(num_data)])
@@ -49,5 +49,5 @@ plt.plot(range(len(likelihoods)),likelihoods)
 plt.show()
 
 # Should see independent random normal variables.
-corner(chain,truths=x_true,labels=('m','b'))
+corner(chain,truths=x_true,labels=('m','b'),levels=(0.68,0.95,))
 plt.show()
