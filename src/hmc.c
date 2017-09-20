@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 #include "hmc.h"
 #include "normal.h"
 
@@ -19,6 +20,9 @@
  * A SampleChain struct containing the full Markov chain.
  */
 SampleChain hmc(HMCArgs hmc_args) {
+    // Seed the random number generator.
+    srandom(time(NULL));
+
     int num_params = hmc_args.num_params;
     int num_samps = hmc_args.num_samples;
     int num_steps = hmc_args.num_steps;
