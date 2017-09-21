@@ -18,4 +18,4 @@ typedef struct {
 Hamiltonian logp(double *, void *);
 
 SampleResults test(int num_params, int num_samples, int num_steps,
-                   double epsilon);
+                   int num_burn, double epsilon);

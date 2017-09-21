@@ -23,4 +23,4 @@ typedef struct {
 Hamiltonian RP_logp(double *, void *);
 
 RPSampleResults RP_test(int n_data, int num_samples, int num_steps,
-                   double epsilon);
+                   int num_burn, double epsilon);

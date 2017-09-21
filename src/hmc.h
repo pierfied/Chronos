@@ -40,6 +40,7 @@ typedef struct {
     int num_samples;
     int num_params;
     int num_steps;
+    int num_burn;
     double epsilon;
     double *x0;
 } HMCArgs;

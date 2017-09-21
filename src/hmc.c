@@ -26,6 +26,7 @@ SampleChain hmc(HMCArgs hmc_args) {
     int num_params = hmc_args.num_params;
     int num_samps = hmc_args.num_samples;
     int num_steps = hmc_args.num_steps;
+    int num_burn = hmc_args.num_burn;
     double epsilon = hmc_args.epsilon;
 
     int num_accept = 0;
@@ -40,7 +41,7 @@ SampleChain hmc(HMCArgs hmc_args) {
     }
 
     // Generate the samples.
-    for (int i = 0; i < num_samps; i++) {
+    for (int i = -num_burn; i < num_samps; i++) {
         // Copy initial positions and generate new momenta.
         for (int j = 0; j < num_params; j++) {
             x_prime[j] = x[j];
@@ -99,13 +100,18 @@ SampleChain hmc(HMCArgs hmc_args) {
             x = x_prime;
             x_prime = tmp;
             H.log_likelihood = H_prime.log_likelihood;
-            num_accept++;
+
+            if(i >= 0) num_accept++;
         }
-        samples[i] = malloc(sizeof(double) * num_params);
-        for (int j = 0; j < num_params; j++) {
-            samples[i][j] = x[j];
+
+        // Save the state if done with burn-in.
+        if(i >= 0) {
+            samples[i] = malloc(sizeof(double) * num_params);
+            for (int j = 0; j < num_params; j++) {
+                samples[i][j] = x[j];
+            }
+            log_likelihoods[i] = H.log_likelihood;
         }
-        log_likelihoods[i] = H.log_likelihood;
 
         free(p);
     }

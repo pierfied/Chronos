@@ -34,7 +34,7 @@ Hamiltonian logp(double *x, void *arg_ptr){
 }
 
 SampleResults test(int num_params, int num_samples, int num_steps,
-                   double epsilon){
+                   int num_burn, double epsilon){
     INLikelihoodArgs args;
     args.num_params = num_params;
 
@@ -55,6 +55,7 @@ SampleResults test(int num_params, int num_samples, int num_steps,
     hmc_args.num_samples = num_samples;
     hmc_args.num_params = num_params;
     hmc_args.num_steps = num_steps;
+    hmc_args.num_burn = num_burn;
     hmc_args.epsilon = epsilon;
     hmc_args.x0 = x0;
 

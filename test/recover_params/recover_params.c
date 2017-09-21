@@ -41,7 +41,7 @@ Hamiltonian RP_logp(double *params, void *arg_ptr){
 }
 
 RPSampleResults RP_test(int n_data, int num_samples, int num_steps,
-                   double epsilon){
+                   int num_burn, double epsilon){
     srandom(time(NULL));
 
     RPLikelihoodArgs args;
@@ -75,6 +75,7 @@ RPSampleResults RP_test(int n_data, int num_samples, int num_steps,
     hmc_args.num_samples = num_samples;
     hmc_args.num_params = num_params;
     hmc_args.num_steps = num_steps;
+    hmc_args.num_burn = num_burn;
     hmc_args.epsilon = epsilon;
     hmc_args.x0 = params0;
 

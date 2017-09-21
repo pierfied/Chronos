@@ -21,19 +21,20 @@ class RPSampleResults(ctypes.Structure):
 tests = ctypes.cdll.LoadLibrary('../libtests.so')
 
 test = tests.RP_test
-test.argtypes = [ctypes.c_int,ctypes.c_int,ctypes.c_int,ctypes.c_double]
+test.argtypes = [ctypes.c_int,ctypes.c_int,ctypes.c_int,ctypes.c_int,
+                 ctypes.c_double]
 test.restype = RPSampleResults
 
 num_data = 10
 num_samps = int(1e5)
-results = test(num_data,num_samps,1,1e-2)
+num_burn = int(1e4)
+results = test(num_data,num_samps,1,num_burn,0.05)
 print('Acceptance Rate: ',str(results.chain.accept_rate))
 
 # x_true = np.array([results.x_true[i] for i in range(num_data)])
 x_true = np.array([results.m_true,results.b_true])
 chain = np.array([[results.chain.samples[i][j] for j in range(2)]
          for i in range(num_samps)])
-chain = chain[int(1e4):,:]
 likelihoods = np.array([results.chain.log_likelihoods[i] for i
                         in range(num_samps)])
 
