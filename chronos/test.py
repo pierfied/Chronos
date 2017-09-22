@@ -1,4 +1,5 @@
-def mybasic():
-    import chronos
-    print "Imported successfully"
-    
+import chronos
+
+def normal():
+    print "Calling normal: ",chronos._lib.normal()
+    return

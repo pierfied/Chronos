@@ -2,8 +2,8 @@
 // Created by pierfied on 9/10/17.
 //
 
-#ifndef CHRONOS_HMC_H
-#define CHRONOS_HMC_H
+//#ifndef CHRONOS_HMC_H
+//#define CHRONOS_HMC_H
 
 /*
  * Struct containing information about the Hamiltonian.
@@ -13,12 +13,14 @@
  * log_likelihood: Full log_likelihood.
  * grad: Gradient of the likelihood for each parameter.
  */
+/*
 typedef struct {
     double H;
     double K;
     double log_likelihood;
     double *grad;
 } Hamiltonian;
+*/
 
 /*
  * Struct containing the arguments for the HMC sampler.
@@ -33,6 +35,7 @@ typedef struct {
  * epsilon: Step-size
  * x0: The initial position of the sampler.
  */
+/*
 typedef struct {
     Hamiltonian (*log_likelihood)(double *, void *);
 
@@ -44,6 +47,7 @@ typedef struct {
     double epsilon;
     double *x0;
 } HMCArgs;
+*/
 
 /*
  * Struct containing information about the sample chain
@@ -53,6 +57,7 @@ typedef struct {
  * samples: Markov chain of shape num_samples x num_params.
  * log_likelihoods: Log-likelihood value for each sample.
  */
+/*
 typedef struct {
     int num_samples;
     int num_params;
@@ -60,19 +65,19 @@ typedef struct {
     double **samples;
     double *log_likelihoods;
 } SampleChain;
+*/
 
-SampleChain hmc(HMCArgs hmc_args);
+void*hmc(void*hmc_args_vp);
 
 double *init_p(int num_params);
 
-Hamiltonian hamiltonian(double *x, double *p, HMCArgs hmc_args);
+void*hamiltonian(double *x, double *p, void*hmc_args_vp);
 
-Hamiltonian log_likelihood(double *x, HMCArgs hmc_args);
+void*log_likelihood(double *x, void*hmc_args);
 
-void update_hamiltonian_momenta(double *p, Hamiltonian *H,
-                                HMCArgs hmc_args);
+void update_hamiltonian_momenta(double *p, void*H,
+                                void*hmc_args);
 
-void leapfrog_update(double *x, double *p, double *grad, int num_params,
-                     double epsilon);
+void leapfrog_update(double *x, double *p, double *grad, int num_params, double epsilon);
 
-#endif //CHRONOS_HMC_H
+//#endif //CHRONOS_HMC_H

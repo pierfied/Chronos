@@ -8,6 +8,38 @@
 #include "hmc.h"
 #include "normal.h"
 
+//from hmc.h header
+typedef struct {
+    double H;
+    double K;
+    double log_likelihood;
+    double *grad;
+} Hamiltonian;
+
+//from hmc.h header
+typedef struct {
+    int num_samples;
+    int num_params;
+    double accept_rate;
+    double **samples;
+    double *log_likelihoods;
+} SampleChain;
+
+//from hmc.h header
+typedef struct {
+    void*(*log_likelihood)(double *, void *);
+
+    void *likelihood_args;
+    int num_samples;
+    int num_params;
+    int num_steps;
+    int num_burn;
+    double epsilon;
+    double *x0;
+} HMCArgs;
+
+
+
 /*
  * hmc
  * Generates a Markov chain of samples from the provided
@@ -19,7 +51,9 @@
  * Returns:
  * A SampleChain struct containing the full Markov chain.
  */
-SampleChain hmc(HMCArgs hmc_args) {
+void*hmc(void*hmc_args_vp) {
+  HMCArgs hmc_args = *(HMCArgs*)hmc_args_vp;
+    
     // Seed the random number generator.
     srandom(time(NULL));
 
@@ -49,7 +83,7 @@ SampleChain hmc(HMCArgs hmc_args) {
         double *p = init_p(num_params);
 
         // Compute the initial Hamiltonian and gradients.
-        Hamiltonian H = hamiltonian(x, p, hmc_args);
+        Hamiltonian H = *(Hamiltonian*)hamiltonian(x, p, &hmc_args);
         Hamiltonian H_prime;
         double *grad = H.grad;
 
@@ -65,7 +99,7 @@ SampleChain hmc(HMCArgs hmc_args) {
         free(grad);
 
         // Update the gradients.
-        H_prime = log_likelihood(x_prime, hmc_args);
+        H_prime = *(Hamiltonian*)log_likelihood(x_prime, &hmc_args);
         grad = H_prime.grad;
 
         // Perform the rest of the leapfrog propagation.
@@ -80,7 +114,7 @@ SampleChain hmc(HMCArgs hmc_args) {
             free(grad);
 
             // Update the gradients.
-            H_prime = log_likelihood(x_prime, hmc_args);
+            H_prime = *(Hamiltonian*)log_likelihood(x_prime, &hmc_args);
             grad = H_prime.grad;
         }
 
@@ -91,7 +125,7 @@ SampleChain hmc(HMCArgs hmc_args) {
         free(grad);
 
         // Update the proposed Hamiltonian with the current momenta.
-        update_hamiltonian_momenta(p, &H_prime, hmc_args);
+        update_hamiltonian_momenta(p, &H_prime, &hmc_args);
 
         // Perform Metropolis-Hastings update.
         double accept_prob = fmin(1, exp(H.H - H_prime.H));
@@ -127,7 +161,7 @@ SampleChain hmc(HMCArgs hmc_args) {
     chain.samples = samples;
     chain.log_likelihoods = log_likelihoods;
 
-    return chain;
+    return &chain;
 }
 
 /*
@@ -161,11 +195,13 @@ double *init_p(int num_params) {
  * Returns:
  * Hamiltonian of the current state.
  */
-Hamiltonian hamiltonian(double *x, double *p, HMCArgs hmc_args) {
-    Hamiltonian log_p = log_likelihood(x, hmc_args);
-    update_hamiltonian_momenta(p, &log_p, hmc_args);
+void*hamiltonian(double *x, double *p, void*hmc_args_vp) {
+    HMCArgs hmc_args = *(HMCArgs*)hmc_args_vp;
 
-    return log_p;
+    Hamiltonian log_p = *(Hamiltonian*)log_likelihood(x, &hmc_args);
+    update_hamiltonian_momenta(p, &log_p, &hmc_args);
+
+    return &log_p;
 }
 
 /*
@@ -179,9 +215,11 @@ Hamiltonian hamiltonian(double *x, double *p, HMCArgs hmc_args) {
  * Returns:
  * Hamiltonian struct with only likelihood and gradient values.
  */
-Hamiltonian log_likelihood(double *x, HMCArgs hmc_args){
-    Hamiltonian log_p = hmc_args.log_likelihood(x, hmc_args.likelihood_args);
-    return log_p;
+void*log_likelihood(double *x, void*hmc_args_vp){
+    HMCArgs hmc_args = *(HMCArgs*)hmc_args_vp;
+
+    Hamiltonian log_p = *(Hamiltonian*)hmc_args.log_likelihood(x, hmc_args.likelihood_args);
+    return &log_p;
 }
 
 /*
@@ -194,8 +232,9 @@ Hamiltonian log_likelihood(double *x, HMCArgs hmc_args){
  * H: Pointer to the Hamiltonian struct to be updated.
  * hmc_args: HMCArgs struct with appropriate likelihood function.
  */
-void update_hamiltonian_momenta(double *p, Hamiltonian *H,
-                                       HMCArgs hmc_args){
+void update_hamiltonian_momenta(double *p,  void*H_vp, void*hmc_args_vp){
+  Hamiltonian*H= (Hamiltonian*)H_vp;
+  HMCArgs hmc_args = *(HMCArgs*)hmc_args_vp;
     // Compute the kinetic contribution to the Hamiltonian.
     double K = 0;
     for (int i = 0; i < hmc_args.num_params; i++) {

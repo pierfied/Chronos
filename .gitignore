@@ -1,3 +1,6 @@
+# compiled python files
+*.pyc
+
 # emacs backup files
 *~
 
