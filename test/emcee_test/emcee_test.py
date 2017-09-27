@@ -1,7 +1,7 @@
 import ctypes
 import numpy as np
 import matplotlib.pyplot as plt
-from corner import corner
+from chainconsumer import ChainConsumer
 import emcee
 
 class SampleChain(ctypes.Structure):
@@ -36,6 +36,7 @@ m_true = 2
 b_true = -1
 err_mean = 0.75
 err_sigma = 0.25
+x_true = np.array([m_true,b_true])
 
 # Generate a data sample.
 x = np.arange(num_data,dtype=np.float64)
@@ -67,12 +68,6 @@ sampler.run_mcmc(p0,num_samps/num_walkers)
 # Burn in
 samples = sampler.chain[:,100:,:].reshape((-1,num_dim))
 
-# Plot the chain
-corner(samples,labels=['m','b'],truths=[m_true,b_true],levels=[.68,.95])
-plt.suptitle('emcee')
-plt.savefig('emcee.png')
-plt.show()
-
 # Get the pointers to the data.
 x_dat = x.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
 y_dat = y.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
@@ -84,7 +79,6 @@ results = test(num_data,x_dat,y_dat,err_dat,
 print('Acceptance Rate: ',str(results.chain.accept_rate))
 
 # Get the results.
-x_true = np.array([m_true,b_true])
 chain = np.array([[results.chain.samples[i][j] for j in range(2)]
          for i in range(num_samps)])
 likelihoods = np.array([results.chain.log_likelihoods[i] for i
@@ -93,12 +87,16 @@ likelihoods = np.array([results.chain.log_likelihoods[i] for i
 # Should see a nice converged chain.
 plt.plot(range(len(likelihoods)),likelihoods)
 plt.title('Log-Likelihood')
-plt.xlabel('Step #')
+plt.xlabel('Step \#')
 plt.ylabel('$\ln(P)$')
 plt.show()
 
 # Should match the distribution from emcee.
-corner(chain,truths=x_true,labels=('m','b'),levels=(0.68,0.95,))
-plt.suptitle('HMC')
-plt.savefig('hmc.png')
+c = ChainConsumer()
+c.add_chain(samples,['m','b'],name='emcee')
+c.add_chain(chain,['m','b'],name='HMC')
+c.configure(sigma2d=False)
+fig = c.plotter.plot(figsize='column',truth=x_true)
+plt.tight_layout()
+plt.savefig('emcee_compare.png')
 plt.show()
