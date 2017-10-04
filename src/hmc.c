@@ -2,6 +2,7 @@
 // Created by pierfied on 9/10/17.
 //
 
+#include <omp.h>
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
@@ -36,6 +37,7 @@ SampleChain hmc(HMCArgs hmc_args) {
     // Initialize the positions and momenta.
     double *x = malloc(sizeof(double) * num_params);
     double *x_prime = malloc(sizeof(double) * num_params);
+#pragma omp parallel for
     for (int i = 0; i < num_params; i++) {
         x[i] = hmc_args.x0[i];
     }
@@ -43,6 +45,7 @@ SampleChain hmc(HMCArgs hmc_args) {
     // Generate the samples.
     for (int i = -num_burn; i < num_samps; i++) {
         // Copy initial positions and generate new momenta.
+#pragma omp parallel for
         for (int j = 0; j < num_params; j++) {
             x_prime[j] = x[j];
         }
@@ -54,8 +57,9 @@ SampleChain hmc(HMCArgs hmc_args) {
         double *grad = H.grad;
 
         // Perform the first step in leapfrog.
-        double half_epsilon = 0.5*epsilon;
-        for(int j = 0; j < num_params; j++){
+        double half_epsilon = 0.5 * epsilon;
+#pragma omp parallel for
+        for (int j = 0; j < num_params; j++) {
             // Half-step in momenta.
             p[j] += half_epsilon * grad[j];
 
@@ -70,7 +74,8 @@ SampleChain hmc(HMCArgs hmc_args) {
 
         // Perform the rest of the leapfrog propagation.
         for (int j = 1; j < num_steps; j++) {
-            for(int k = 0; k < num_params; k++){
+#pragma omp parallel for
+            for (int k = 0; k < num_params; k++) {
                 // Full-step in momenta.
                 p[k] += epsilon * grad[k];
 
@@ -85,7 +90,8 @@ SampleChain hmc(HMCArgs hmc_args) {
         }
 
         // Perform the last half-step in momenta.
-        for(int j = 0; j < num_params; j++){
+#pragma omp parallel for
+        for (int j = 0; j < num_params; j++) {
             p[j] += half_epsilon * grad[j];
         }
         free(grad);
@@ -95,18 +101,19 @@ SampleChain hmc(HMCArgs hmc_args) {
 
         // Perform Metropolis-Hastings update.
         double accept_prob = fmin(1, exp(H.H - H_prime.H));
-        if (random()/(double) RAND_MAX <= accept_prob) {
+        if (random() / (double) RAND_MAX <= accept_prob) {
             double *tmp = x;
             x = x_prime;
             x_prime = tmp;
             H.log_likelihood = H_prime.log_likelihood;
 
-            if(i >= 0) num_accept++;
+            if (i >= 0) num_accept++;
         }
 
         // Save the state if done with burn-in.
-        if(i >= 0) {
+        if (i >= 0) {
             samples[i] = malloc(sizeof(double) * num_params);
+#pragma omp parallel for
             for (int j = 0; j < num_params; j++) {
                 samples[i][j] = x[j];
             }
@@ -142,6 +149,7 @@ SampleChain hmc(HMCArgs hmc_args) {
  */
 double *init_p(int num_params) {
     double *p = malloc(sizeof(double) * num_params);
+#pragma omp parallel for
     for (int i = 0; i < num_params; i++) {
         p[i] = normal();
     }
@@ -179,7 +187,7 @@ Hamiltonian hamiltonian(double *x, double *p, HMCArgs hmc_args) {
  * Returns:
  * Hamiltonian struct with only likelihood and gradient values.
  */
-Hamiltonian log_likelihood(double *x, HMCArgs hmc_args){
+Hamiltonian log_likelihood(double *x, HMCArgs hmc_args) {
     Hamiltonian log_p = hmc_args.log_likelihood(x, hmc_args.likelihood_args);
     return log_p;
 }
@@ -195,7 +203,7 @@ Hamiltonian log_likelihood(double *x, HMCArgs hmc_args){
  * hmc_args: HMCArgs struct with appropriate likelihood function.
  */
 void update_hamiltonian_momenta(double *p, Hamiltonian *H,
-                                       HMCArgs hmc_args){
+                                HMCArgs hmc_args) {
     // Compute the kinetic contribution to the Hamiltonian.
     double K = 0;
     for (int i = 0; i < hmc_args.num_params; i++) {
