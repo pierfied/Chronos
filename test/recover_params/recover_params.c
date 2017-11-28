@@ -68,6 +68,9 @@ RPSampleResults RP_test(int n_data, int num_samples, int num_steps,
 
     params0[0] = normal();
     params0[1] = normal();
+    double m[2];
+    m[0] = 1;
+    m[1] = 1;
 
     HMCArgs hmc_args;
     hmc_args.log_likelihood = RP_logp;
@@ -78,6 +81,7 @@ RPSampleResults RP_test(int n_data, int num_samples, int num_steps,
     hmc_args.num_burn = num_burn;
     hmc_args.epsilon = epsilon;
     hmc_args.x0 = params0;
+    hmc_args.m = m;
 
     SampleChain chain = hmc(hmc_args);
     RPSampleResults results;
