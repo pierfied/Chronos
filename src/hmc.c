@@ -34,12 +34,15 @@ SampleChain hmc(HMCArgs hmc_args) {
     double **samples = malloc(sizeof(double *) * num_samps);
     double *log_likelihoods = malloc(sizeof(double *) * num_samps);
 
-    // Initialize the positions and momenta.
+    // Initialize the positions, momenta, and calculate the inverted
+    // masses.
     double *x = malloc(sizeof(double) * num_params);
     double *x_prime = malloc(sizeof(double) * num_params);
+    double *inv_m = malloc(sizeof(double) * num_params);
 #pragma omp parallel for
     for (int i = 0; i < num_params; i++) {
         x[i] = hmc_args.x0[i];
+        inv_m[i] = 1.0/hmc_args.m[i];
     }
 
     // Generate the samples.
@@ -52,7 +55,7 @@ SampleChain hmc(HMCArgs hmc_args) {
         double *p = init_p(num_params);
 
         // Compute the initial Hamiltonian and gradients.
-        Hamiltonian H = hamiltonian(x, p, hmc_args);
+        Hamiltonian H = hamiltonian(x, p, inv_m, hmc_args);
         Hamiltonian H_prime;
         double *grad = H.grad;
 
@@ -64,7 +67,7 @@ SampleChain hmc(HMCArgs hmc_args) {
             p[j] += half_epsilon * grad[j];
 
             // Full-step in position.
-            x_prime[j] += epsilon * p[j];
+            x_prime[j] += epsilon * p[j] * inv_m[j];
         }
         free(grad);
 
@@ -80,7 +83,7 @@ SampleChain hmc(HMCArgs hmc_args) {
                 p[k] += epsilon * grad[k];
 
                 // Full-step in position.
-                x_prime[k] += epsilon * p[k];
+                x_prime[k] += epsilon * p[k] * inv_m[k];
             }
             free(grad);
 
@@ -97,7 +100,7 @@ SampleChain hmc(HMCArgs hmc_args) {
         free(grad);
 
         // Update the proposed Hamiltonian with the current momenta.
-        update_hamiltonian_momenta(p, &H_prime, hmc_args);
+        update_hamiltonian_momenta(p, &H_prime, inv_m, hmc_args);
 
         // Perform Metropolis-Hastings update.
         double accept_prob = fmin(1, exp(H.H - H_prime.H));
@@ -125,6 +128,7 @@ SampleChain hmc(HMCArgs hmc_args) {
 
     free(x);
     free(x_prime);
+    free(inv_m);
 
     // Create the chain return struct.
     SampleChain chain;
@@ -169,9 +173,10 @@ double *init_p(int num_params) {
  * Returns:
  * Hamiltonian of the current state.
  */
-Hamiltonian hamiltonian(double *x, double *p, HMCArgs hmc_args) {
+Hamiltonian hamiltonian(double *x, double *p, double *inv_m,
+                        HMCArgs hmc_args) {
     Hamiltonian log_p = log_likelihood(x, hmc_args);
-    update_hamiltonian_momenta(p, &log_p, hmc_args);
+    update_hamiltonian_momenta(p, &log_p, inv_m, hmc_args);
 
     return log_p;
 }
@@ -202,12 +207,12 @@ Hamiltonian log_likelihood(double *x, HMCArgs hmc_args) {
  * H: Pointer to the Hamiltonian struct to be updated.
  * hmc_args: HMCArgs struct with appropriate likelihood function.
  */
-void update_hamiltonian_momenta(double *p, Hamiltonian *H,
+void update_hamiltonian_momenta(double *p, Hamiltonian *H, double *inv_m,
                                 HMCArgs hmc_args) {
     // Compute the kinetic contribution to the Hamiltonian.
     double K = 0;
     for (int i = 0; i < hmc_args.num_params; i++) {
-        K += p[i] * p[i];
+        K += p[i] * p[i] * inv_m[i];
     }
     K *= 0.5;
     H->K = K;

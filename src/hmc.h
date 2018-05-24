@@ -32,6 +32,7 @@ typedef struct {
  * num_steps: The number of leapfrog steps between samples.
  * epsilon: Step-size
  * x0: The initial position of the sampler.
+ * m: Masses for each parameter.
  */
 typedef struct {
     Hamiltonian (*log_likelihood)(double *, void *);
@@ -43,6 +44,7 @@ typedef struct {
     int num_burn;
     double epsilon;
     double *x0;
+    double *m;
 } HMCArgs;
 
 /*
@@ -65,11 +67,11 @@ SampleChain hmc(HMCArgs hmc_args);
 
 double *init_p(int num_params);
 
-Hamiltonian hamiltonian(double *x, double *p, HMCArgs hmc_args);
+Hamiltonian hamiltonian(double *x, double *p, double *inv_m, HMCArgs hmc_args);
 
 Hamiltonian log_likelihood(double *x, HMCArgs hmc_args);
 
-void update_hamiltonian_momenta(double *p, Hamiltonian *H,
+void update_hamiltonian_momenta(double *p, Hamiltonian *H, double *inv_m,
                                 HMCArgs hmc_args);
 
 void leapfrog_update(double *x, double *p, double *grad, int num_params,

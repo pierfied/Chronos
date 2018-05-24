@@ -56,6 +56,9 @@ ETSampleResults ET_test(int n_data, double *x, double *y, double *err,
     double params0[2];
     params0[0] = normal();
     params0[1] = normal();
+    double m[2];
+    m[0] = 1;
+    m[1] = 1;
 
     HMCArgs hmc_args;
     hmc_args.log_likelihood = ET_logp;
@@ -66,6 +69,7 @@ ETSampleResults ET_test(int n_data, double *x, double *y, double *err,
     hmc_args.num_burn = num_burn;
     hmc_args.epsilon = epsilon;
     hmc_args.x0 = params0;
+    hmc_args.m = m;
 
     SampleChain chain = hmc(hmc_args);
     ETSampleResults results;
