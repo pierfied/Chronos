@@ -42,7 +42,7 @@ SampleChain hmc(HMCArgs hmc_args) {
 #pragma omp parallel for
     for (int i = 0; i < num_params; i++) {
         x[i] = hmc_args.x0[i];
-        inv_m[i] = 1.0/hmc_args.m[i];
+        inv_m[i] = 1.0 / hmc_args.m[i];
     }
 
     // Generate the samples.
@@ -103,7 +103,9 @@ SampleChain hmc(HMCArgs hmc_args) {
         update_hamiltonian_momenta(p, &H_prime, inv_m, hmc_args);
 
         // Perform Metropolis-Hastings update.
-        double accept_prob = fmin(1, exp(H.H - H_prime.H));
+        double ratio = exp(H.H - H_prime.H);
+        if (ratio != ratio) ratio = 0;
+        double accept_prob = fmin(1, ratio);
         if (random() / (double) RAND_MAX <= accept_prob) {
             double *tmp = x;
             x = x_prime;
