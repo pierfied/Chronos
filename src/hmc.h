@@ -40,9 +40,11 @@ typedef struct {
     void *likelihood_args;
     int num_samples;
     int num_params;
-    int num_steps;
+    int num_samp_steps;
+    int num_burn_steps;
     int num_burn;
-    double epsilon;
+    double samp_epsilon;
+    double burn_epsilon;
     double *x0;
     double *m;
 } HMCArgs;

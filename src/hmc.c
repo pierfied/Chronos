@@ -26,9 +26,9 @@ SampleChain hmc(HMCArgs hmc_args) {
 
     int num_params = hmc_args.num_params;
     int num_samps = hmc_args.num_samples;
-    int num_steps = hmc_args.num_steps;
+    int num_steps;
     int num_burn = hmc_args.num_burn;
-    double epsilon = hmc_args.epsilon;
+    double epsilon;
 
     int num_accept = 0;
     double **samples = malloc(sizeof(double *) * num_samps);
@@ -47,6 +47,14 @@ SampleChain hmc(HMCArgs hmc_args) {
 
     // Generate the samples.
     for (int i = -num_burn; i < num_samps; i++) {
+        if(i < 0){
+            num_steps = hmc_args.num_burn_steps;
+            epsilon = hmc_args.burn_epsilon;
+        }else{
+            num_steps = hmc_args.num_samp_steps;
+            epsilon = hmc_args.samp_epsilon;
+        }
+
         // Copy initial positions and generate new momenta.
 #pragma omp parallel for
         for (int j = 0; j < num_params; j++) {
