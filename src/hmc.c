@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include <stdio.h>
 #include "hmc.h"
 #include "normal.h"
 
@@ -122,6 +123,7 @@ SampleChain hmc(HMCArgs hmc_args) {
 
             if (i >= 0) num_accept++;
         }
+        printf("Step: %d \t\t Accept Prob: %f\n", i, accept_prob);
 
         // Save the state if done with burn-in.
         if (i >= 0) {
