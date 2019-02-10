@@ -38,13 +38,13 @@ typedef struct {
     Hamiltonian (*log_likelihood)(double *, void *);
 
     void *likelihood_args;
-    int num_samples;
     int num_params;
-    int num_samp_steps;
     int num_burn_steps;
     int num_burn;
-    double samp_epsilon;
     double burn_epsilon;
+    int num_samples;
+    int num_samp_steps;
+    double samp_epsilon;
     double *x0;
     double *m;
 } HMCArgs;
