@@ -47,6 +47,7 @@ typedef struct {
     double samp_epsilon;
     double *x0;
     double *m;
+    double *sigma_p;
 } HMCArgs;
 
 /*
@@ -67,7 +68,7 @@ typedef struct {
 
 SampleChain hmc(HMCArgs hmc_args);
 
-double *init_p(int num_params);
+double *init_p(int num_params, double *sigma_p);
 
 Hamiltonian hamiltonian(double *x, double *p, double *inv_m, HMCArgs hmc_args);
 

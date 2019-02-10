@@ -61,7 +61,7 @@ SampleChain hmc(HMCArgs hmc_args) {
         for (int j = 0; j < num_params; j++) {
             x_prime[j] = x[j];
         }
-        double *p = init_p(num_params);
+        double *p = init_p(num_params, hmc_args.sigma_p);
 
         // Compute the initial Hamiltonian and gradients.
         Hamiltonian H = hamiltonian(x, p, inv_m, hmc_args);
@@ -163,11 +163,11 @@ SampleChain hmc(HMCArgs hmc_args) {
  * Returns:
  * An array of momenta values with length num_params.
  */
-double *init_p(int num_params) {
+double *init_p(int num_params, double *sigma_p) {
     double *p = malloc(sizeof(double) * num_params);
 #pragma omp parallel for
     for (int i = 0; i < num_params; i++) {
-        p[i] = normal();
+        p[i] = normal() * sigma_p[i];
     }
 
     return p;
