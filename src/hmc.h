@@ -39,12 +39,10 @@ typedef struct {
 
     void *likelihood_args;
     int num_params;
-    int num_burn_steps;
-    int num_burn;
-    double burn_epsilon;
-    int num_samples;
-    int num_samp_steps;
-    double samp_epsilon;
+    int num_samps;
+    int num_steps;
+    double epsilon;
+    double T_scale;
     double *x0;
     double *m;
     double *sigma_p;
@@ -68,7 +66,7 @@ typedef struct {
 
 SampleChain hmc(HMCArgs hmc_args);
 
-double *init_p(int num_params, double *sigma_p);
+double *init_p(int num_params, double *sigma_p, double T);
 
 Hamiltonian hamiltonian(double *x, double *p, double *inv_m, HMCArgs hmc_args);
 

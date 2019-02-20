@@ -26,10 +26,10 @@ SampleChain hmc(HMCArgs hmc_args) {
     srandom(time(NULL));
 
     int num_params = hmc_args.num_params;
-    int num_samps = hmc_args.num_samples;
-    int num_steps;
-    int num_burn = hmc_args.num_burn;
-    double epsilon;
+    int num_samps = hmc_args.num_samps;
+    int num_steps = hmc_args.num_steps;
+    double epsilon = hmc_args.epsilon;
+    double T_scale = hmc_args.T_scale;
 
     int num_accept = 0;
     double **samples = malloc(sizeof(double *) * num_samps);
@@ -47,21 +47,15 @@ SampleChain hmc(HMCArgs hmc_args) {
     }
 
     // Generate the samples.
-    for (int i = -num_burn; i < num_samps; i++) {
-        if(i < 0){
-            num_steps = hmc_args.num_burn_steps;
-            epsilon = hmc_args.burn_epsilon;
-        }else{
-            num_steps = hmc_args.num_samp_steps;
-            epsilon = hmc_args.samp_epsilon;
-        }
+    for (int i = 0; i < num_samps; i++) {
+        double T = 1 / (T_scale * i + 1);
 
         // Copy initial positions and generate new momenta.
 #pragma omp parallel for
         for (int j = 0; j < num_params; j++) {
             x_prime[j] = x[j];
         }
-        double *p = init_p(num_params, hmc_args.sigma_p);
+        double *p = init_p(num_params, hmc_args.sigma_p, T);
 
         // Compute the initial Hamiltonian and gradients.
         Hamiltonian H = hamiltonian(x, p, inv_m, hmc_args);
@@ -123,7 +117,8 @@ SampleChain hmc(HMCArgs hmc_args) {
 
             if (i >= 0) num_accept++;
         }
-        printf("Step: %d \t\t Accept Prob: %f\n", i, accept_prob);
+        epsilon *= fmax(0.5, accept_prob / 0.65);
+        printf("Step: %d \t\t Accept Prob: %f \t\t Epsilon: %e\n", i, accept_prob, epsilon);
 
         // Save the state if done with burn-in.
         if (i >= 0) {
@@ -163,11 +158,11 @@ SampleChain hmc(HMCArgs hmc_args) {
  * Returns:
  * An array of momenta values with length num_params.
  */
-double *init_p(int num_params, double *sigma_p) {
+double *init_p(int num_params, double *sigma_p, double T) {
     double *p = malloc(sizeof(double) * num_params);
 #pragma omp parallel for
     for (int i = 0; i < num_params; i++) {
-        p[i] = normal() * sigma_p[i];
+        p[i] = normal() * sigma_p[i] * T;
     }
 
     return p;
