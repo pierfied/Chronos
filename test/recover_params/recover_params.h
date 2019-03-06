@@ -4,6 +4,7 @@
 
 #include "include/hmc.h"
 
+// Struct containing arguments for the likelihood function.
 typedef struct {
     int n_data;
     double *y;
@@ -11,6 +12,7 @@ typedef struct {
     double *err;
 } RPLikelihoodArgs;
 
+// Struct containing data to be returned from the test.
 typedef struct {
     double m_true;
     double b_true;
@@ -22,5 +24,4 @@ typedef struct {
 
 Hamiltonian RP_logp(double *, void *);
 
-RPSampleResults RP_test(int n_data, int num_samples, int num_steps,
-                   int num_burn, double epsilon);
+RPSampleResults RP_test(int n_data, int num_samples, int num_steps, int num_burn, double epsilon);
