@@ -71,17 +71,24 @@ RPSampleResults RP_test(int n_data, int num_samples, int num_steps,
     double m[2];
     m[0] = 1;
     m[1] = 1;
+    double sigma_p[2];
+    sigma_p[0] = 1;
+    sigma_p[1] = 1;
 
     HMCArgs hmc_args;
     hmc_args.log_likelihood = RP_logp;
     hmc_args.likelihood_args = (void *)&args;
-    hmc_args.num_samples = num_samples;
     hmc_args.num_params = num_params;
-    hmc_args.num_steps = num_steps;
     hmc_args.num_burn = num_burn;
-    hmc_args.epsilon = epsilon;
+    hmc_args.num_burn_steps = num_steps;
+    hmc_args.burn_epsilon = epsilon;
+    hmc_args.num_samples = num_samples;
+    hmc_args.num_samp_steps = num_steps;
+    hmc_args.samp_epsilon = epsilon;
     hmc_args.x0 = params0;
     hmc_args.m = m;
+    hmc_args.sigma_p = sigma_p;
+    hmc_args.verbose = 0;
 
     SampleChain chain = hmc(hmc_args);
     RPSampleResults results;

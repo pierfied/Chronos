@@ -42,11 +42,13 @@ SampleResults test(int num_params, int num_samples, int num_steps,
     double *sigma = malloc(sizeof(double) * num_params);
     double x0[num_params];
     double m[num_params];
+    double sigma_p[num_params];
     for(int i = 0; i < num_params; i++){
         mu[i] = normal();
         sigma[i] = 1 + 0.25 * normal();
         x0[i] = normal();
         m[i] = 1;
+        sigma_p[i] = 1;
     }
     args.mu = mu;
     args.sigma = sigma;
@@ -54,13 +56,17 @@ SampleResults test(int num_params, int num_samples, int num_steps,
     HMCArgs hmc_args;
     hmc_args.log_likelihood = logp;
     hmc_args.likelihood_args = (void *)&args;
-    hmc_args.num_samples = num_samples;
     hmc_args.num_params = num_params;
-    hmc_args.num_steps = num_steps;
     hmc_args.num_burn = num_burn;
-    hmc_args.epsilon = epsilon;
+    hmc_args.num_burn_steps = num_steps;
+    hmc_args.burn_epsilon = epsilon;
+    hmc_args.num_samples = num_samples;
+    hmc_args.num_samp_steps = num_steps;
+    hmc_args.samp_epsilon = epsilon;
     hmc_args.x0 = x0;
     hmc_args.m = m;
+    hmc_args.sigma_p = sigma_p;
+    hmc_args.verbose = 0;
 
     SampleChain chain = hmc(hmc_args);
     SampleResults results;
