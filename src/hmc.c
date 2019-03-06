@@ -12,8 +12,7 @@
 
 /*
  * hmc
- * Generates a Markov chain of samples from the provided
- * likelihood distribution.
+ * Generates a Markov chain of samples from the provided likelihood distribution.
  *
  * Params:
  * hmc_args: HMCArgs struct containing the sampler arguments.
@@ -25,18 +24,17 @@ SampleChain hmc(HMCArgs hmc_args) {
     // Seed the random number generator.
     srandom(time(NULL));
 
+    // Get relevant parameters from the arguments struct.
     int num_params = hmc_args.num_params;
     int num_samps = hmc_args.num_samples;
-    int num_steps;
     int num_burn = hmc_args.num_burn;
-    double epsilon;
+    int verbose = hmc_args.verbose;
 
     int num_accept = 0;
     double **samples = malloc(sizeof(double *) * num_samps);
     double *log_likelihoods = malloc(sizeof(double *) * num_samps);
 
-    // Initialize the positions, momenta, and calculate the inverted
-    // masses.
+    // Initialize the positions, momenta, and calculate the inverted masses.
     double *x = malloc(sizeof(double) * num_params);
     double *x_prime = malloc(sizeof(double) * num_params);
     double *inv_m = malloc(sizeof(double) * num_params);
@@ -47,11 +45,14 @@ SampleChain hmc(HMCArgs hmc_args) {
     }
 
     // Generate the samples.
+    int num_steps;
+    double epsilon;
     for (int i = -num_burn; i < num_samps; i++) {
-        if(i < 0){
+        // Set the stepsize and number of steps for current the sample depending upon whether or not in burn-in phase.
+        if (i < 0) {
             num_steps = hmc_args.num_burn_steps;
             epsilon = hmc_args.burn_epsilon;
-        }else{
+        } else {
             num_steps = hmc_args.num_samp_steps;
             epsilon = hmc_args.samp_epsilon;
         }
@@ -121,9 +122,14 @@ SampleChain hmc(HMCArgs hmc_args) {
             x_prime = tmp;
             H.log_likelihood = H_prime.log_likelihood;
 
+            // Increment acceptance rate counter.
             if (i >= 0) num_accept++;
         }
-        printf("Step: %d \t\t Accept Prob: %f\n", i, accept_prob);
+
+        // If verbose flag is set print out step number and acceptance probability.
+        if (verbose == 1) {
+            printf("Step: %d \t\t Accept Prob: %f\n", i, accept_prob);
+        }
 
         // Save the state if done with burn-in.
         if (i >= 0) {
@@ -159,6 +165,7 @@ SampleChain hmc(HMCArgs hmc_args) {
  *
  * Params:
  * num_params: The number of parameters to generate momenta for.
+ * sigma_p: Standard deviations for each parameter from which to draw momenta for.
  *
  * Returns:
  * An array of momenta values with length num_params.
@@ -185,8 +192,7 @@ double *init_p(int num_params, double *sigma_p) {
  * Returns:
  * Hamiltonian of the current state.
  */
-Hamiltonian hamiltonian(double *x, double *p, double *inv_m,
-                        HMCArgs hmc_args) {
+Hamiltonian hamiltonian(double *x, double *p, double *inv_m, HMCArgs hmc_args) {
     Hamiltonian log_p = log_likelihood(x, hmc_args);
     update_hamiltonian_momenta(p, &log_p, inv_m, hmc_args);
 
@@ -211,16 +217,14 @@ Hamiltonian log_likelihood(double *x, HMCArgs hmc_args) {
 
 /*
  * update_hamiltonian_momenta
- * Updates the hamiltonian passed in to include the kinetic
- * contribution from the provided momenta.
+ * Updates the hamiltonian passed in to include the kinetic contribution from the provided momenta.
  *
  * Params:
  * p: Pointer to momenta.
  * H: Pointer to the Hamiltonian struct to be updated.
  * hmc_args: HMCArgs struct with appropriate likelihood function.
  */
-void update_hamiltonian_momenta(double *p, Hamiltonian *H, double *inv_m,
-                                HMCArgs hmc_args) {
+void update_hamiltonian_momenta(double *p, Hamiltonian *H, double *inv_m, HMCArgs hmc_args) {
     // Compute the kinetic contribution to the Hamiltonian.
     double K = 0;
     for (int i = 0; i < hmc_args.num_params; i++) {
@@ -229,31 +233,4 @@ void update_hamiltonian_momenta(double *p, Hamiltonian *H, double *inv_m,
     K *= 0.5;
     H->K = K;
     H->H = K - H->log_likelihood;
-}
-
-/*
- * leapfrog_update
- * Perform a leapfrog step updating both position and momenta.
- *
- * Params:
- * x: The current positions.
- * p: The current momenta.
- * grad: The potential gradients at the current position.
- * num_params: Number of parameters (size of x).
- * epsilon: Step-size
- */
-void leapfrog_update(double *x, double *p, double *grad, int num_params,
-                     double epsilon) {
-    double half_epsilon = 0.5 * epsilon;
-
-    for (int i = 0; i < num_params; i++) {
-        // Perform a half step in momentum.
-        p[i] += half_epsilon * grad[i];
-
-        // Perform a full step in position.
-        x[i] += epsilon * p[i];
-
-        // Perform another half step in momentum.
-        p[i] += half_epsilon * grad[i];
-    }
 }

@@ -24,23 +24,28 @@ typedef struct {
  * Struct containing the arguments for the HMC sampler.
  *
  * log_likelihood: Function pointer to the log-likelihood calculation.
- *     This function must return a double array of size 1+num_params where
- *     the first element is the log-likelihood followed by the gradients.
+ *     This function must take a double pointer containing the current parameter values and a void pointer containing
+ *     the arguments for the likelihood function.
  * likelihood_args: Arguments to be passed to the likelihood function.
- * num_samples: The number of samples to generate.
  * num_params: The number of parameters being sampled over.
- * num_steps: The number of leapfrog steps between samples.
- * epsilon: Step-size
- * x0: The initial position of the sampler.
+ * num_burn: The number of samples to be generated for burn-in. Burn-in samples will not be returned.
+ * num_burn_steps: The number of leapfrog steps to be taken in a burn-in sample.
+ * burn_epsilon: Step-size to be used during burn-in.
+ * num_samples: The number of samples to generate.
+ * num_steps: The number of leapfrog steps to be taken in a sample of the chain.
+ * epsilon: Step-size to be used during sampling of the chain.
+ * x0: The initial parameter values for the sampler.
  * m: Masses for each parameter.
+ * sigma_p: Standard deviations from which to draw momenta for each parameter.
+ * verbose: If set to 1 will print out the step number and acceptance probability for each step.
  */
 typedef struct {
     Hamiltonian (*log_likelihood)(double *, void *);
 
     void *likelihood_args;
     int num_params;
-    int num_burn_steps;
     int num_burn;
+    int num_burn_steps;
     double burn_epsilon;
     int num_samples;
     int num_samp_steps;
@@ -48,6 +53,7 @@ typedef struct {
     double *x0;
     double *m;
     double *sigma_p;
+    int verbose;
 } HMCArgs;
 
 /*
@@ -74,10 +80,6 @@ Hamiltonian hamiltonian(double *x, double *p, double *inv_m, HMCArgs hmc_args);
 
 Hamiltonian log_likelihood(double *x, HMCArgs hmc_args);
 
-void update_hamiltonian_momenta(double *p, Hamiltonian *H, double *inv_m,
-                                HMCArgs hmc_args);
-
-void leapfrog_update(double *x, double *p, double *grad, int num_params,
-                     double epsilon);
+void update_hamiltonian_momenta(double *p, Hamiltonian *H, double *inv_m, HMCArgs hmc_args);
 
 #endif //CHRONOS_HMC_H
