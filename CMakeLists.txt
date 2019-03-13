@@ -13,8 +13,12 @@ if (OPENMP_FOUND)
 endif ()
 
 file(GLOB SOURCES src/*.h src/*.c)
-add_library(chronos SHARED ${SOURCES})
+add_library(chronos_shared SHARED ${SOURCES})
+add_library(chronos_static STATIC ${SOURCES})
 
-install(TARGETS chronos DESTINATION lib)
+set_target_properties(chronos_shared PROPERTIES OUTPUT_NAME "chronos")
+set_target_properties(chronos_static PROPERTIES OUTPUT_NAME "chronos")
+
+install(TARGETS chronos_shared chronos_static DESTINATION lib)
 file(GLOB HEADERS src/*.h)
 install(FILES ${HEADERS} DESTINATION include)
