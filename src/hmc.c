@@ -55,6 +55,8 @@ SampleChain hmc(HMCArgs hmc_args) {
         } else {
             num_steps = hmc_args.num_samp_steps;
             epsilon = hmc_args.samp_epsilon;
+
+            num_steps = 1 + random() / (double) RAND_MAX * (double) num_steps;
         }
 
         // Copy initial positions and generate new momenta.
